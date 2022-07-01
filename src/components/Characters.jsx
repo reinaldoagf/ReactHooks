@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useMemo } from 'react';
 const initialState = {
   favorites: []
 }
@@ -15,35 +15,49 @@ const favoriteReducer = (state, action) => {
 }
 const Characters = () => {
   const [characters, setCharacters] = useState([]);
+  const [search, setSearch] = useState('');
   const [favorites, dispatch] = useReducer(favoriteReducer, initialState);
   const onAdd = (element) => {
     dispatch({ type: 'ADD_TO_FAVORITES', payload: element })
   }
+  const onSearch = (event) => {
+    setSearch(event.target.value)
+  }
+  // const filterElements = characters.filter(e => (e.name.toLowerCase().includes(search.toLowerCase())))
+  const filterElements = useMemo(()=>
+    characters.filter(e => (e.name.toLowerCase().includes(search.toLowerCase()))),
+    [characters,search]
+  )
+
   useEffect(() => {
     fetch('https://rickandmortyapi.com/api/character/')
       .then(response => response.json())
       .then(data => {
-        console.log(data)
         setCharacters(data.results)
       });
   }, [])
   return (
     <>
       <div className="container ml-auto mr-auto flex flex-wrap items-start">
-          {
-            favorites.favorites.map(e => (
-              <div key={`fav-${e.id}`} className="w-full md:w-1/2 lg:w-1/4 pl-5 pr-5 mb-5 lg:pl-2 lg:pr-2">
-                <a href="#" className="w-fill flex p-3 pl-3 bg-gray-100 hover:bg-gray-200 rounded-lg">
-                  <img className="flex-none w-6 h-full" src="https://remaxrec.com/wp-content/uploads/2021/03/estrella-4.png" />
-                  <span className="ml-2 truncate" title={e.name}>{e.name}</span>
-                </a>
-              </div>
-            ))
-          }
+        {
+          favorites.favorites.map(e => (
+            <div key={`fav-${e.id}`} className="w-full md:w-1/2 lg:w-1/4 pl-5 pr-5 mb-5 lg:pl-2 lg:pr-2">
+              <a href="#" className="w-fill flex p-3 pl-3 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                <img className="flex-none w-6 h-full" src="https://remaxrec.com/wp-content/uploads/2021/03/estrella-4.png" />
+                <span className="ml-2 truncate" title={e.name}>{e.name}</span>
+              </a>
+            </div>
+          ))
+        }
       </div>
 
+      <div className="container ml-auto mr-auto flex flex-wrap items-start mb-4">
+        <div className="w-full ">
+          <input type="text" value={search} onChange={onSearch} className="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" type="text" placeholder="Buscar" aria-label="Buscar" />
+        </div>
+      </div>
       {
-        characters.map(e => (
+        filterElements.map(e => (
           <div key={e.id} className="w-full md:w-1/2 lg:w-1/4 pl-5 pr-5 mb-5 lg:pl-2 lg:pr-2">
             <div className="bg-white rounded-lg m-h-64 p-2 transform hover:translate-y-2 hover:shadow-xl transition duration-300">
               <figure className="mb-2">
@@ -62,13 +76,13 @@ const Characters = () => {
                   </div>
                   {
                     !favorites.favorites.find(f => f.id === e.id) && (<button onClick={() => onAdd(e)} href="#" className={`rounded-full text-white hover:bg-white hover:text-purple-900 hover:shadow-xl focus:outline-none w-10 h-10 flex ml-auto transition duration-300 ${e.gender === "male" ? "bg-gray-800" : "bg-purple-900"}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-current m-auto">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </button>)
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-current m-auto">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    </button>)
                   }
-                  
+
                 </div>
               </div>
             </div>
